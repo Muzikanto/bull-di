@@ -34,7 +34,7 @@ yarn add bull-di
 ### Root File
 
 ```typescript jsx
-import { startJobs, subscribeGracefulShutdown } from 'bull-dii';
+import { startJobs, subscribeGracefulShutdown } from 'bull-di';
 
 startJobs({ redisUrl: 'redis://localhost', pathToJobs: __dirname + '/src/jobs' });
 subscribeGracefulShutdown();
