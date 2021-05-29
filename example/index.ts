@@ -1,6 +1,5 @@
 import 'reflect-metadata';
 import { loadQueues, Queue, stopQueues, subscribeGracefulShutdown } from '../src';
-import path from 'path';
 import { Container } from 'typedi';
 
 Queue.defaultRedisUrl = 'redis://localhost';
@@ -9,7 +8,8 @@ Queue.defaultRedisUrl = 'redis://localhost';
 import TestQueue from './jobs/test';
 
 loadQueues({
-   pathToJobs: path.resolve('example/jobs'),
+   // pathToQueues: path.resolve('example/jobs'),
+   queues: [TestQueue],
 });
 subscribeGracefulShutdown();
 

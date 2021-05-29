@@ -39,9 +39,9 @@ import { Queue } from 'bull-di';
 Queue.defaultRedisUrl = 'redis://localhost';
 Queue.isWorker = true;
 
-import { startJobs, subscribeGracefulShutdown } from 'bull-di';
+import { loadQueues, subscribeGracefulShutdown } from 'bull-di';
 
-startJobs({ pathToJobs: __dirname + '/src/jobs' });
+loadQueues({ pathToQueues: __dirname + '/src/jobs' });
 subscribeGracefulShutdown();
 ```
 
@@ -57,12 +57,15 @@ class SubscriptionExpireQueue extends QueueInterface<{ userId: string }, { compl
    @Inject(() => EmailService)
    public emailService!: EmailService;
 
-   async onProcess(job: Bull.Job<{ userId: string }>) {
+   public async onProcess(job: Bull.Job<{ userId: string }>) {
       await this.emailService.subscriptionExpire(job.data.userId);
 
       return {
          completedAt: new Date(),
       };
+   }
+   public onFailure(err: Error) {
+      console.log(err);
    }
 
    public async onCompleted(job: Bull.Job<{ userId: string }>, res: { completedAt: Date }) {

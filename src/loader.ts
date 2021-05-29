@@ -6,13 +6,24 @@ import { Container } from 'typedi';
 
 export const runnedJobs: { [key: string]: InstanceType<typeof QueueInterface> } = {};
 
-function loadQueues(config: { process?: boolean; pathToJobs?: string; redisUrl?: string }) {
-   const modules = requireAll({
-      dirname: config.pathToJobs || path.resolve('src/jobs'),
-      filter: (file: string, path: string) => `${file.split('.')[0]}`,
-   });
+function loadQueues(config: {
+   process?: boolean;
+   pathToQueues?: string;
+   queues: any[];
+   redisUrl?: string;
+}) {
+   let rawJobs: any[] = [];
 
-   const rawJobs: any[] = Object.values(modules).map((el: any) => el.default);
+   if (config.pathToQueues) {
+      const modules = requireAll({
+         dirname: config.pathToQueues || path.resolve('src/jobs'),
+         filter: (file: string, path: string) => `${file.split('.')[0]}`,
+      });
+
+      rawJobs = Object.values(modules).map((el: any) => el.default);
+   } else {
+      rawJobs = config.queues;
+   }
 
    for (const rawJob of rawJobs) {
       const job: any = Container.get(rawJob);
