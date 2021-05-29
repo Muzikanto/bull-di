@@ -46,6 +46,7 @@ subscribeGracefulShutdown();
 import Bull from 'bull';
 import { Queue, QueueInterface } from 'bull-di';
 
+@Service()
 @Queue('subscription-expire', 'redis://localhost')
 class SubscriptionExpireQueue extends QueueInterface<{ userId: string }, { completedAt: Date }> {
    @Inject(() => EmailService)
