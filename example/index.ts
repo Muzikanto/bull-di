@@ -8,7 +8,6 @@ Queue.defaultRedisUrl = 'redis://localhost';
 import TestQueue from './jobs/test';
 
 loadQueues({
-   // pathToQueues: path.resolve('example/jobs'),
    queues: [TestQueue],
 });
 subscribeGracefulShutdown();

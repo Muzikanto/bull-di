@@ -41,7 +41,7 @@ Queue.isWorker = true;
 
 import { loadQueues, subscribeGracefulShutdown } from 'bull-di';
 
-loadQueues({ pathToQueues: __dirname + '/src/jobs' });
+loadQueues({ queues: __dirname + '/src/jobs' }); // or queues: [list of queues]
 subscribeGracefulShutdown();
 ```
 

@@ -6,17 +6,12 @@ import { Container } from 'typedi';
 
 export const runnedJobs: { [key: string]: InstanceType<typeof QueueInterface> } = {};
 
-function loadQueues(config: {
-   process?: boolean;
-   pathToQueues?: string;
-   queues: any[];
-   redisUrl?: string;
-}) {
+function loadQueues(config: { process?: boolean; queues: any[] | string; redisUrl?: string }) {
    let rawJobs: any[] = [];
 
-   if (config.pathToQueues) {
+   if (typeof config.queues === 'string') {
       const modules = requireAll({
-         dirname: config.pathToQueues || path.resolve('src/jobs'),
+         dirname: config.queues || path.resolve('src/jobs'),
          filter: (file: string, path: string) => `${file.split('.')[0]}`,
       });
 
