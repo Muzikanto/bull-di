@@ -48,8 +48,11 @@ import { Queue, QueueInterface } from 'bull-di';
 
 @Queue('subscription-expire', 'redis://localhost')
 class SubscriptionExpireQueue extends QueueInterface<{ userId: string }, { completedAt: Date }> {
+   @Inject(() => EmailService)
+   public emailService!: EmailService;
+
    async onProcess(job: Bull.Job<{ userId: string }>) {
-      await doSomething();
+      await this.emailService.subscriptionExpire(job.data.userId);
 
       return {
          completedAt: new Date(),
