@@ -15,7 +15,7 @@ function Queue(
 
       const queueOpts = opts || {};
 
-      if (opts && opts.fixTls) {
+      if ((opts && opts.fixTls) || Queue.fixTls) {
          if (!queueOpts.redis) {
             queueOpts.redis = {};
          }
@@ -60,6 +60,7 @@ function Queue(
 
 Queue.defaultRedisUrl = undefined as string | undefined;
 Queue.isWorker = false as boolean;
+Queue.fixTls = false as boolean;
 
 abstract class QueueInterface<Input = any, Result = any> {
    public readonly queue!: Bull.Queue;
