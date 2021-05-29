@@ -26,7 +26,7 @@
     "url": "https://github.com/Muzikanto/bull-di/issues"
   },
   "scripts": {
-    "start": "ts-node example/index.ts"
+    "start": "IS_WORKER=true ts-node example/index.ts"
   },
   "dependencies": {
     "bull": "^3.22.6",

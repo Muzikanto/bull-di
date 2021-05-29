@@ -1,4 +1,4 @@
 import { Queue, QueueInterface } from './queue';
-import { startJobs, stopJobs, subscribeGracefulShutdown } from './loader';
+import { loadQueues, stopQueues, subscribeGracefulShutdown } from './loader';
 
-export { QueueInterface, stopJobs, Queue, startJobs, subscribeGracefulShutdown };
+export { QueueInterface, stopQueues, Queue, loadQueues, subscribeGracefulShutdown };

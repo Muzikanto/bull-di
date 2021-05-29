@@ -1,6 +1,8 @@
 import Bull, { DoneCallback } from 'bull';
 import { runnedJobs } from './loader';
 
+const isWorker = process.env.IS_WORKER === 'true';
+
 function Queue(
    queueName: string,
    redisUrl?: string,
@@ -32,20 +34,22 @@ function Queue(
 
       constructor.prototype.queue = queue;
 
-      if (constructor.prototype.onProcess) {
-         const onProcess = constructor.prototype.onProcess;
+      if (Queue.isWorker || isWorker) {
+         if (constructor.prototype.onProcess) {
+            const onProcess = constructor.prototype.onProcess;
 
-         queue
-            .process(constructor.prototype.queueName, 1, function(j) {
-               return onProcess.bind(runnedJobs[constructor.prototype.queueName])(j);
-            })
-            .then();
-      }
-      if (constructor.prototype.onFailure) {
-         queue.on('failed', constructor.prototype.onFailure);
-      }
-      if (constructor.prototype.onCompleted) {
-         queue.on('completed', constructor.prototype.onCompleted);
+            queue
+               .process(constructor.prototype.queueName, 1, function(j) {
+                  return onProcess.bind(runnedJobs[constructor.prototype.queueName])(j);
+               })
+               .then();
+         }
+         if (constructor.prototype.onFailure) {
+            queue.on('failed', constructor.prototype.onFailure);
+         }
+         if (constructor.prototype.onCompleted) {
+            queue.on('completed', constructor.prototype.onCompleted);
+         }
       }
 
       constructor.prototype.add = function(data: any, addOpts: any) {
@@ -55,6 +59,7 @@ function Queue(
 }
 
 Queue.defaultRedisUrl = undefined as string | undefined;
+Queue.isWorker = false as boolean;
 
 abstract class QueueInterface<Input = any, Result = any> {
    public readonly queue!: Bull.Queue;

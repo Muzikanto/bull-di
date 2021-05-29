@@ -1,18 +1,16 @@
 // @ts-ignore
 import requireAll from 'require-all';
 import path from 'path';
-import { QueueInterface, Queue } from './queue';
+import { QueueInterface } from './queue';
 import { Container } from 'typedi';
 
 export const runnedJobs: { [key: string]: InstanceType<typeof QueueInterface> } = {};
 
-function startJobs(config: { pathToJobs?: string; redisUrl?: string }) {
+function loadQueues(config: { process?: boolean; pathToJobs?: string; redisUrl?: string }) {
    const modules = requireAll({
       dirname: config.pathToJobs || path.resolve('src/jobs'),
       filter: (file: string, path: string) => `${file.split('.')[0]}`,
    });
-
-   Queue.defaultRedisUrl = config.redisUrl;
 
    const rawJobs: any[] = Object.values(modules).map((el: any) => el.default);
 
@@ -29,7 +27,7 @@ function startJobs(config: { pathToJobs?: string; redisUrl?: string }) {
    return runnedJobs;
 }
 
-async function stopJobs(doNotWaitJobs?: boolean) {
+async function stopQueues(doNotWaitJobs?: boolean) {
    for (const jobKey in runnedJobs) {
       const job = runnedJobs[jobKey];
 
@@ -42,7 +40,7 @@ function subscribeGracefulShutdown(doNotWaitJobs?: boolean) {
       process.on(signal, () => {
          console.info('Graceful Shutdown. Stop all queues!', signal);
 
-         stopJobs(doNotWaitJobs)
+         stopQueues(doNotWaitJobs)
             .then(() => process.exit(0))
             .catch(() => process.exit(1));
       });
@@ -55,4 +53,4 @@ function subscribeGracefulShutdown(doNotWaitJobs?: boolean) {
 //    return job as InstanceType<T>;
 // }
 
-export { startJobs, stopJobs, subscribeGracefulShutdown };
+export { loadQueues, stopQueues, subscribeGracefulShutdown };

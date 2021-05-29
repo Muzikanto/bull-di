@@ -1,15 +1,21 @@
 import 'reflect-metadata';
-import { startJobs, stopJobs, subscribeGracefulShutdown } from '../src';
-import TestQueue from './jobs/test';
+import { loadQueues, Queue, stopQueues, subscribeGracefulShutdown } from '../src';
 import path from 'path';
 import { Container } from 'typedi';
 
-startJobs({ redisUrl: 'redis://localhost', pathToJobs: path.resolve('example/jobs') });
+Queue.defaultRedisUrl = 'redis://localhost';
+// Queue.isWorker = true;
+
+import TestQueue from './jobs/test';
+
+loadQueues({
+   pathToJobs: path.resolve('example/jobs'),
+});
 subscribeGracefulShutdown();
 
 Container.get(TestQueue).add(1);
 Container.get(TestQueue).add(1);
 
 setTimeout(() => {
-   stopJobs(true).then();
+   stopQueues(true).then();
 }, 5000);
