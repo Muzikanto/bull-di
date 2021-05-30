@@ -20,16 +20,19 @@ class TestQueue extends MyQueueInterface<number, string> {
    public testService!: TestService;
 
    async onProcess(job: Bull.Job<number>) {
-      this.logger(this.testService.getTestValue());
+      this.logger('process', job.data);
+
       return '1';
    }
 
-   onFailure(job: Bull.Job<number>, error: Error) {
+   async onFailure(job: Bull.Job<number>, error: Error) {
+      this.logger('failure');
+
       console.error(error);
    }
 
    public async onCompleted(job: Bull.Job<number>, res: string) {
-      console.log(job.data, res);
+      this.logger('completed', job.data, res);
    }
 }
 

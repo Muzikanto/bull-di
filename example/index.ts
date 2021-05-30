@@ -12,8 +12,12 @@ loadQueues({
 });
 subscribeGracefulShutdown();
 
-Container.get(TestQueue).add(1);
-Container.get(TestQueue).add(1);
+Container.get(TestQueue)
+   .add(1)
+   .then();
+Container.get(TestQueue)
+   .add(2)
+   .then();
 
 setTimeout(() => {
    stopQueues(true).then();

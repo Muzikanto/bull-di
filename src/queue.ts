@@ -1,4 +1,4 @@
-import Bull, { DoneCallback } from 'bull';
+import Bull from 'bull';
 import { runnedJobs } from './loader';
 
 const isWorker = process.env.IS_WORKER === 'true';
@@ -36,19 +36,27 @@ function Queue(
 
       if (Queue.isWorker || isWorker) {
          if (constructor.prototype.onProcess) {
-            const onProcess = constructor.prototype.onProcess;
-
             queue
-               .process(constructor.prototype.queueName, 1, function(j) {
-                  return onProcess.bind(runnedJobs[constructor.prototype.queueName])(j);
+               .process(constructor.prototype.queueName, 1, function(job) {
+                  return constructor.prototype.onProcess.bind(
+                     runnedJobs[constructor.prototype.queueName],
+                  )(job);
                })
                .then();
          }
          if (constructor.prototype.onFailure) {
-            queue.on('failed', constructor.prototype.onFailure);
+            queue.on('failed', function(job, err) {
+               return constructor.prototype.onFailure.bind(
+                  runnedJobs[constructor.prototype.queueName],
+               )(job, err);
+            });
          }
          if (constructor.prototype.onCompleted) {
-            queue.on('completed', constructor.prototype.onCompleted);
+            queue.on('completed', function(job, res) {
+               return constructor.prototype.onCompleted.bind(
+                  runnedJobs[constructor.prototype.queueName],
+               )(job, res);
+            });
          }
       }
 
@@ -67,10 +75,10 @@ abstract class QueueInterface<Input = any, Result = any> {
    protected readonly queueName!: string;
    protected readonly redisUrl!: string;
 
-   public abstract onProcess?(this: {}, job: Bull.Job<Input>, done: DoneCallback): Promise<Result>;
-   public onFailure?(this: {}, job: Bull.Job<Input>, error: Error): void;
-   public onCompleted?(this: {}, job: Bull.Job<Input>, result: Result): void;
-   public add!: (this: {}, data: Input, opts?: Bull.JobOptions) => void;
+   public abstract onProcess?(this: QueueInterface, job: Bull.Job<Input>): Promise<Result>;
+   public onFailure?(this: QueueInterface, job: Bull.Job<Input>, error: Error): Promise<void>;
+   public onCompleted?(this: QueueInterface, job: Bull.Job<Input>, result: Result): Promise<void>;
+   public add!: (this: QueueInterface, data: Input, opts?: Bull.JobOptions) => Promise<void>;
 }
 
 export { Queue, QueueInterface };
