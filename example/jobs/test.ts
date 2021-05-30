@@ -17,19 +17,19 @@ abstract class MyQueueInterface<Input, Result> extends QueueInterface<number, nu
 @Queue('test')
 class TestQueue extends MyQueueInterface<number, number> {
    @Inject(() => TestService)
-   public testService!: TestService;
+   protected testService!: TestService;
 
-   async onProcess(job: Bull.Job<number>) {
+   protected async onProcess(job: Bull.Job<number>) {
       this.logger('process:', job.data);
 
       return job.data * 2;
    }
 
-   async onFailure(job: Bull.Job<number>, error: Error) {
+   protected async onFailure(job: Bull.Job<number>, error: Error) {
       this.logger('failure', error);
    }
 
-   public async onCompleted(job: Bull.Job<number>, res: number) {
+   protected async onCompleted(job: Bull.Job<number>, res: number) {
       this.logger('completed', 'input:', job.data, 'result:', res);
    }
 }

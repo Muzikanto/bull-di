@@ -6,7 +6,12 @@ import { Queue } from './queue';
 
 const runnedJobs: { [key: string]: any } = {};
 
-function loadQueues(config: { events?: boolean; queues: any[] | string; redisUrl?: string; fixTls?: boolean }) {
+function loadQueues(config: {
+   events?: boolean;
+   queues: any[] | string;
+   redisUrl?: string;
+   fixTls?: boolean;
+}) {
    let rawJobs: any[] = [];
 
    if (typeof config.events === 'boolean') {
@@ -51,10 +56,20 @@ async function stopQueues(doNotWaitJobs?: boolean) {
    }
 }
 
-function subscribeGracefulShutdown(doNotWaitJobs?: boolean) {
+let shutdown = false;
+
+function subscribeGracefulShutdown(doNotWaitJobs?: boolean, onShutdown?: (signal: string) => void) {
    ['SIGINT', 'SIGTERM', 'SIGQUIT'].forEach(signal => {
       process.on(signal, () => {
-         console.info('Graceful Shutdown. Stop all queues!', signal);
+         if (!shutdown) {
+            console.info('Graceful Shutdown. Stop all queues!', signal);
+
+            if (onShutdown) {
+               onShutdown(signal);
+            }
+
+            shutdown = true;
+         }
 
          stopQueues(doNotWaitJobs)
             .then(() => process.exit(0))
@@ -62,11 +77,5 @@ function subscribeGracefulShutdown(doNotWaitJobs?: boolean) {
       });
    });
 }
-
-// function getJob<T extends new (...args: any) => any>(queueInterface: T): InstanceType<T> {
-//    const job = runnedJobs[queueInterface.prototype.queueName];
-//
-//    return job as InstanceType<T>;
-// }
 
 export { loadQueues, stopQueues, subscribeGracefulShutdown };

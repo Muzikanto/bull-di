@@ -68,11 +68,11 @@ function Queue(
 abstract class QueueInterface<Input = any, Result = any> {
    public readonly queue!: Bull.Queue;
    public readonly queueName!: string;
-   public readonly redisUrl!: string;
+   protected readonly redisUrl!: string;
 
-   public abstract onProcess?(this: QueueInterface, job: Bull.Job<Input>): Promise<Result>;
-   public onFailure?(this: QueueInterface, job: Bull.Job<Input>, error: Error): Promise<void>;
-   public onCompleted?(this: QueueInterface, job: Bull.Job<Input>, result: Result): Promise<void>;
+   protected abstract onProcess?(this: QueueInterface, job: Bull.Job<Input>): Promise<Result>;
+   protected onFailure?(this: QueueInterface, job: Bull.Job<Input>, error: Error): Promise<void>;
+   protected onCompleted?(this: QueueInterface, job: Bull.Job<Input>, result: Result): Promise<void>;
    public add!: (this: QueueInterface, data: Input, opts?: Bull.JobOptions) => Promise<void>;
 }
 
