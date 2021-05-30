@@ -9,30 +9,28 @@ class TestService {
    }
 }
 
-abstract class MyQueueInterface<Input, Result> extends QueueInterface<number, string> {
+abstract class MyQueueInterface<Input, Result> extends QueueInterface<number, number> {
    public logger = console.log;
 }
 
 @Service()
 @Queue('test')
-class TestQueue extends MyQueueInterface<number, string> {
+class TestQueue extends MyQueueInterface<number, number> {
    @Inject(() => TestService)
    public testService!: TestService;
 
    async onProcess(job: Bull.Job<number>) {
-      this.logger('process', job.data);
+      this.logger('process:', job.data);
 
-      return '1';
+      return job.data * 2;
    }
 
    async onFailure(job: Bull.Job<number>, error: Error) {
-      this.logger('failure');
-
-      console.error(error);
+      this.logger('failure', error);
    }
 
-   public async onCompleted(job: Bull.Job<number>, res: string) {
-      this.logger('completed', job.data, res);
+   public async onCompleted(job: Bull.Job<number>, res: number) {
+      this.logger('completed', 'input:', job.data, 'result:', res);
    }
 }
 

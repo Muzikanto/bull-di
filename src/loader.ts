@@ -1,13 +1,23 @@
 // @ts-ignore
 import requireAll from 'require-all';
 import path from 'path';
-import { QueueInterface } from './queue';
 import { Container } from 'typedi';
+import { Queue } from './queue';
 
-export const runnedJobs: { [key: string]: InstanceType<typeof QueueInterface> } = {};
+const runnedJobs: { [key: string]: any } = {};
 
-function loadQueues(config: { process?: boolean; queues: any[] | string; redisUrl?: string }) {
+function loadQueues(config: { events?: boolean; queues: any[] | string; redisUrl?: string; fixTls?: boolean }) {
    let rawJobs: any[] = [];
+
+   if (typeof config.events === 'boolean') {
+      Queue.events = config.events;
+   }
+   if (typeof config.fixTls === 'boolean') {
+      Queue.fixTls = config.fixTls;
+   }
+   if (typeof config.events === 'string') {
+      Queue.defaultRedisUrl = config.redisUrl;
+   }
 
    if (typeof config.queues === 'string') {
       const modules = requireAll({

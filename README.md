@@ -35,13 +35,13 @@ yarn add bull-di
 
 ```typescript jsx
 import { Queue } from 'bull-di';
-
-Queue.defaultRedisUrl = 'redis://localhost';
-Queue.isWorker = true;
-
 import { loadQueues, subscribeGracefulShutdown } from 'bull-di';
 
-loadQueues({ queues: __dirname + '/src/jobs' }); // or queues: [list of queues]
+loadQueues({
+   queues: [TestQueue],
+   redisUrl: 'redis://localhost',
+   events: true, // true if it`s worker
+});
 subscribeGracefulShutdown();
 ```
 
@@ -52,7 +52,7 @@ import Bull from 'bull';
 import { Queue, QueueInterface } from 'bull-di';
 
 @Service()
-@Queue('subscription-expire', 'redis://localhost')
+@Queue('subscription-expire')
 class SubscriptionExpireQueue extends QueueInterface<{ userId: string }, { completedAt: Date }> {
    @Inject(() => EmailService)
    public emailService!: EmailService;

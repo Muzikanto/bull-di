@@ -1,22 +1,21 @@
 import 'reflect-metadata';
-import { loadQueues, Queue, stopQueues, subscribeGracefulShutdown } from '../src';
+import { loadQueues, stopQueues, subscribeGracefulShutdown } from '../src';
 import { Container } from 'typedi';
-
-Queue.defaultRedisUrl = 'redis://localhost';
-// Queue.isWorker = true;
-
 import TestQueue from './jobs/test';
 
 loadQueues({
    queues: [TestQueue],
+   redisUrl: 'redis://localhost',
+   events: true,
+   fixTls: false
 });
 subscribeGracefulShutdown();
 
 Container.get(TestQueue)
-   .add(1)
+   .add(2)
    .then();
 Container.get(TestQueue)
-   .add(2)
+   .add(3)
    .then();
 
 setTimeout(() => {

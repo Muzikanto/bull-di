@@ -1,79 +1,74 @@
 import Bull from 'bull';
-import { runnedJobs } from './loader';
 
-const isWorker = process.env.IS_WORKER === 'true';
+Queue.defaultRedisUrl = undefined as string | undefined;
+Queue.events = false as boolean;
+Queue.fixTls = false as boolean;
 
 function Queue(
    queueName: string,
    redisUrl?: string,
    opts?: Bull.QueueOptions & { fixTls?: boolean },
 ) {
-   return function(constructor: Function) {
-      constructor.prototype.queueName = queueName;
-      constructor.prototype.redisUrl = redisUrl || Queue.defaultRedisUrl;
-      constructor.prototype.opts = opts;
+   return function(constructor: new (...args: any) => any): any {
+      return class extends constructor {
+         constructor() {
+            super();
 
-      const queueOpts = opts || {};
+            this.queueName = queueName;
+            this.redisUrl = redisUrl || Queue.defaultRedisUrl;
 
-      if ((opts && opts.fixTls) || Queue.fixTls) {
-         if (!queueOpts.redis) {
-            queueOpts.redis = {};
+            const queueOpts = opts || {};
+
+            if ((opts && opts.fixTls) || Queue.fixTls) {
+               if (!queueOpts.redis) {
+                  queueOpts.redis = {};
+               }
+               // @ts-ignore
+               if (!queueOpts.redis.tls) {
+                  // @ts-ignore
+                  queueOpts.redis.tls = {};
+               }
+            }
+
+            const queue = new Bull(queueName, this.redisUrl, queueOpts);
+
+            this.queue = queue;
+
+            if (Queue.events) {
+               const instance = this;
+
+               if (this.onProcess) {
+                  queue
+                     .process(queueName, 1, function(job) {
+                        return instance.onProcess.bind(instance)(job);
+                     })
+                     .then()
+                     .catch(console.log);
+               }
+               if (this.onFailure) {
+                  queue.on('failed', function(job, err) {
+                     return instance.onFailure.bind(instance)(job, err);
+                  });
+               }
+               if (this.onCompleted) {
+                  queue.on('completed', function(job, res) {
+                     return instance.onCompleted.bind(instance)(job, res);
+                  });
+               }
+            }
+
+            this.add = function(data: any, addOpts: any) {
+               return queue.add(queueName, data, addOpts);
+            };
          }
-         // @ts-ignore
-         if (!queueOpts.redis.tls) {
-            // @ts-ignore
-            queueOpts.redis.tls = {};
-         }
-      }
-
-      const queue = new Bull(
-         constructor.prototype.queueName,
-         constructor.prototype.redisUrl,
-         constructor.prototype.opts,
-      );
-
-      constructor.prototype.queue = queue;
-
-      if (Queue.isWorker || isWorker) {
-         if (constructor.prototype.onProcess) {
-            queue
-               .process(constructor.prototype.queueName, 1, function(job) {
-                  return constructor.prototype.onProcess.bind(
-                     runnedJobs[constructor.prototype.queueName],
-                  )(job);
-               })
-               .then();
-         }
-         if (constructor.prototype.onFailure) {
-            queue.on('failed', function(job, err) {
-               return constructor.prototype.onFailure.bind(
-                  runnedJobs[constructor.prototype.queueName],
-               )(job, err);
-            });
-         }
-         if (constructor.prototype.onCompleted) {
-            queue.on('completed', function(job, res) {
-               return constructor.prototype.onCompleted.bind(
-                  runnedJobs[constructor.prototype.queueName],
-               )(job, res);
-            });
-         }
-      }
-
-      constructor.prototype.add = function(data: any, addOpts: any) {
-         return queue.add(constructor.prototype.queueName, data, addOpts);
       };
    };
 }
 
-Queue.defaultRedisUrl = undefined as string | undefined;
-Queue.isWorker = false as boolean;
-Queue.fixTls = false as boolean;
-
 abstract class QueueInterface<Input = any, Result = any> {
    public readonly queue!: Bull.Queue;
-   protected readonly queueName!: string;
-   protected readonly redisUrl!: string;
+   public readonly queueName!: string;
+   public readonly redisUrl!: string;
 
    public abstract onProcess?(this: QueueInterface, job: Bull.Job<Input>): Promise<Result>;
    public onFailure?(this: QueueInterface, job: Bull.Job<Input>, error: Error): Promise<void>;
