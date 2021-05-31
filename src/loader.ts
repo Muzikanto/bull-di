@@ -62,10 +62,10 @@ function subscribeGracefulShutdown(doNotWaitJobs?: boolean, onShutdown?: (signal
    ['SIGINT', 'SIGTERM', 'SIGQUIT'].forEach(signal => {
       process.on(signal, () => {
          if (!shutdown) {
-            console.info('Graceful Shutdown. Stop all queues!', signal);
-
             if (onShutdown) {
                onShutdown(signal);
+            } else {
+               console.info('Graceful Shutdown. Stop all queues!', signal);
             }
 
             shutdown = true;

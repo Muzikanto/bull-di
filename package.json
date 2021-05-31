@@ -1,6 +1,6 @@
 {
    "name": "bull-di",
-   "version": "1.0.0",
+   "version": "1.0.1",
    "description": "Bull queue with DI",
    "license": "MIT",
    "maintainers": [
