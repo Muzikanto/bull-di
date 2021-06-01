@@ -50,13 +50,16 @@ subscribeGracefulShutdown();
 import Bull from 'bull';
 import { Queue, QueueInterface } from 'bull-di';
 
+type IInputData = { userId: string };
+type IResultData = { completedAt: Date };
+
 @Service()
 @Queue('subscription-expire')
-class SubscriptionExpireQueue extends QueueInterface<{ userId: string }, { completedAt: Date }> {
+class SubscriptionExpireQueue extends QueueInterface<IInputData, IResultData> {
    @Inject(() => EmailService)
    public emailService!: EmailService;
 
-   public async onProcess(job: Bull.Job<{ userId: string }>) {
+   public async onProcess(job: Bull.Job<IInputData>) {
       await this.emailService.subscriptionExpire(job.data.userId);
 
       return {
@@ -67,7 +70,7 @@ class SubscriptionExpireQueue extends QueueInterface<{ userId: string }, { compl
       console.log(err);
    }
 
-   public async onCompleted(job: Bull.Job<{ userId: string }>, res: { completedAt: Date }) {
+   public async onCompleted(job: Bull.Job<IInputData>, res: IResultData) {
       console.log(`Subscription-expire userId:${job.data.userId} at:${res.completedAt}`);
    }
 }
