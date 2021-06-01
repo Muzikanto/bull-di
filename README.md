@@ -34,7 +34,6 @@ yarn add bull-di
 ### Root File
 
 ```typescript jsx
-import { Queue } from 'bull-di';
 import { loadQueues, subscribeGracefulShutdown } from 'bull-di';
 
 loadQueues({
@@ -64,7 +63,7 @@ class SubscriptionExpireQueue extends QueueInterface<{ userId: string }, { compl
          completedAt: new Date(),
       };
    }
-   public onFailure(err: Error) {
+   public async onFailure(err: Error) {
       console.log(err);
    }
 
@@ -73,7 +72,7 @@ class SubscriptionExpireQueue extends QueueInterface<{ userId: string }, { compl
    }
 }
 
-export default Test;
+export default SubscriptionExpireQueue;
 ```
 
 ## License
