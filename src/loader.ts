@@ -20,7 +20,7 @@ function loadQueues(config: {
    if (typeof config.fixTls === 'boolean') {
       Queue.fixTls = config.fixTls;
    }
-   if (typeof config.events === 'string') {
+   if (typeof config.redisUrl === 'string') {
       Queue.defaultRedisUrl = config.redisUrl;
    }
 
