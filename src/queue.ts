@@ -6,8 +6,8 @@ Queue.fixTls = false as boolean;
 
 function Queue(
    queueName: string,
-   redisUrl?: string,
-   opts?: Bull.QueueOptions & { fixTls?: boolean },
+   redisUrl?: string | null,
+   opts?: Bull.QueueOptions & { fixTls?: boolean; concurrency?: number },
 ) {
    return function(constructor: new (...args: any) => any): any {
       return class extends constructor {
@@ -39,7 +39,9 @@ function Queue(
 
                if (this.onProcess) {
                   queue
-                     .process(queueName, 1, function(job) {
+                     .process(queueName, opts && opts.concurrency ? opts.concurrency : 1, function(
+                        job,
+                     ) {
                         return instance.onProcess.bind(instance)(job);
                      })
                      .then()
@@ -72,7 +74,11 @@ abstract class QueueInterface<Input = any, Result = any> {
 
    protected abstract onProcess?(this: QueueInterface, job: Bull.Job<Input>): Promise<Result>;
    protected onFailure?(this: QueueInterface, job: Bull.Job<Input>, error: Error): Promise<void>;
-   protected onCompleted?(this: QueueInterface, job: Bull.Job<Input>, result: Result): Promise<void>;
+   protected onCompleted?(
+      this: QueueInterface,
+      job: Bull.Job<Input>,
+      result: Result,
+   ): Promise<void>;
    public add!: (this: QueueInterface, data: Input, opts?: Bull.JobOptions) => Promise<void>;
 }
 
